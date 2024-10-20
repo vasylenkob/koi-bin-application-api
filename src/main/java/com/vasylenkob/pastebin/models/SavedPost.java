@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
-public class Post {
- private final String postTitle;
- private final String content;
- private final int lifetimeMinutes;
+public class SavedPost {
+    private final String postTitle;
+    private final String content;
+    private final LocalDateTime expirationDate;
 }

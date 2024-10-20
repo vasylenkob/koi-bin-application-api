@@ -14,10 +14,14 @@ public class MetaDataService {
     private MetaDataRepo metaDataRepo;
 
     public MetaData saveMetaData(MetaData metaData){
-      return metaDataRepo.save(metaData);
+        return metaDataRepo.save(metaData);
     }
 
     public Optional<MetaData> getMetaData(Long postId){
         return metaDataRepo.findById(postId);
+    }
+
+    public void deleteMetaDataById(Long metaId){
+        metaDataRepo.deleteById(metaId);
     }
 }

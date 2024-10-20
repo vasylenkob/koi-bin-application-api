@@ -1,11 +1,13 @@
 package com.vasylenkob.pastebin.services;
 
 import com.vasylenkob.pastebin.models.Post;
+import com.vasylenkob.pastebin.models.SavedPost;
 import com.vasylenkob.pastebin.models.entities.MetaData;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
@@ -29,16 +31,27 @@ public class AmazonS3ClientService {
         s3.putObject(putObjectRequest, RequestBody.fromBytes(content.getBytes()));
     }
 
-    public Post getPost(MetaData metaData){
+    public SavedPost getSavedPost(MetaData metaData){
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucketName)
-                .key(metaData.getPostName())
+                .key(metaData.getPostKey())
                 .build();
         var response = s3.getObject(getObjectRequest);
         try {
-            return new Post(metaData.getTitle(), new String (response.readAllBytes()));
+            return new SavedPost(
+                    metaData.getTitle(),
+                    new String (response.readAllBytes()),
+                    metaData.getExpirationDate());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void deletePost(MetaData metaData) {
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(metaData.getPostKey())
+                .build();
+        s3.deleteObject(deleteObjectRequest);
     }
 }

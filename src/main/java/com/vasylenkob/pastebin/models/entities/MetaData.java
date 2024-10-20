@@ -4,21 +4,25 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Data
 @Entity
-@NoArgsConstructor
+@RequiredArgsConstructor
+@NoArgsConstructor(force = true)
 public class MetaData {
-
-    public MetaData(String title, String postName) {
-        this.title = title;
-        this.postName = postName;
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long metaId;
 
-    private String postName;
-    private String title;
+    private final String postKey;
+    private final String title;
+    private final LocalDateTime expirationDate;
+
+    public boolean isExpired(){
+        return LocalDateTime.now().isAfter(expirationDate);
+    }
 }
