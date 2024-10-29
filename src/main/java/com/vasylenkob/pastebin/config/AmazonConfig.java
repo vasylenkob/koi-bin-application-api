@@ -10,7 +10,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.regions.Region;
 
 @Configuration
-public class AppConfig {
+public class AmazonConfig {
 
     @Value("${aws.region}")
     private Region region;

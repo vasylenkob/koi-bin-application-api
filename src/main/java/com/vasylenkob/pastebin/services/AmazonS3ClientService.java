@@ -1,8 +1,7 @@
 package com.vasylenkob.pastebin.services;
 
-import com.vasylenkob.pastebin.models.Post;
-import com.vasylenkob.pastebin.models.SavedPost;
-import com.vasylenkob.pastebin.models.entities.MetaData;
+import com.vasylenkob.pastebin.dto.SavedPost;
+import com.vasylenkob.pastebin.entities.MetaData;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -10,14 +9,15 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.io.IOException;
 
 @Service
 public class AmazonS3ClientService {
-    @Value("${application.bucket.name}")
+    @Value("${aws.bucket.name}")
     private String bucketName;
-    private S3Client s3;
+    private final S3Client s3;
 
     public AmazonS3ClientService(S3Client s3){
         this.s3 = s3;
@@ -28,7 +28,11 @@ public class AmazonS3ClientService {
                 .bucket(bucketName)
                 .key(postName)
                 .build();
-        s3.putObject(putObjectRequest, RequestBody.fromBytes(content.getBytes()));
+        try {
+            s3.putObject(putObjectRequest, RequestBody.fromBytes(content.getBytes()));
+        } catch (S3Exception e) {
+            throw new RuntimeException("Failed to save post to S3: " + e.getMessage(), e);
+        }
     }
 
     public SavedPost getSavedPost(MetaData metaData){
@@ -36,14 +40,16 @@ public class AmazonS3ClientService {
                 .bucket(bucketName)
                 .key(metaData.getPostKey())
                 .build();
-        var response = s3.getObject(getObjectRequest);
         try {
+            var response = s3.getObject(getObjectRequest);
             return new SavedPost(
                     metaData.getTitle(),
                     new String (response.readAllBytes()),
                     metaData.getExpirationDate());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (S3Exception e) {
+            throw new RuntimeException("Failed to get post from S3: " + e.getMessage(), e);
+        }catch (IOException e) {
+            throw new RuntimeException("Error reading from response: " + e.getMessage(), e);
         }
     }
 
@@ -52,6 +58,10 @@ public class AmazonS3ClientService {
                 .bucket(bucketName)
                 .key(metaData.getPostKey())
                 .build();
-        s3.deleteObject(deleteObjectRequest);
+        try {
+            s3.deleteObject(deleteObjectRequest);
+        }catch (S3Exception e){
+            throw new RuntimeException("Failed to delete post from S3: " + e.getMessage(), e);
+        }
     }
 }

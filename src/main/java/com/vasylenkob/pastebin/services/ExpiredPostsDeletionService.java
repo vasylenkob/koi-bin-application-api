@@ -1,6 +1,6 @@
 package com.vasylenkob.pastebin.services;
 
-import com.vasylenkob.pastebin.models.entities.MetaData;
+import com.vasylenkob.pastebin.entities.MetaData;
 import com.vasylenkob.pastebin.repo.MetaDataRepo;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

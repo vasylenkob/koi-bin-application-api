@@ -1,6 +1,6 @@
 package com.vasylenkob.pastebin.services;
 
-import com.vasylenkob.pastebin.models.entities.MetaData;
+import com.vasylenkob.pastebin.entities.MetaData;
 import com.vasylenkob.pastebin.repo.MetaDataRepo;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -11,7 +11,7 @@ import java.util.Optional;
 @AllArgsConstructor
 public class MetaDataService {
 
-    private MetaDataRepo metaDataRepo;
+    private final MetaDataRepo metaDataRepo;
 
     public MetaData saveMetaData(MetaData metaData){
         return metaDataRepo.save(metaData);

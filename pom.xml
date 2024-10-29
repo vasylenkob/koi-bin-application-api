@@ -12,7 +12,7 @@
 	<artifactId>pastebin</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>pastebin</name>
-	<description>Demo project for Spring Boot</description>
+	<description>Pastebin app</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -62,6 +62,20 @@
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3</artifactId>
 			<version>2.28.17</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+			<version>3.3.4</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt</artifactId>
+			<version>0.12.6</version>
 		</dependency>
 	</dependencies>
 

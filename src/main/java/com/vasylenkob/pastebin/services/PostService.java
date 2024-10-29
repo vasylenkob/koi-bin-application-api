@@ -1,26 +1,24 @@
 package com.vasylenkob.pastebin.services;
 
-import com.vasylenkob.pastebin.models.Post;
-import com.vasylenkob.pastebin.models.SavedPost;
-import com.vasylenkob.pastebin.models.entities.MetaData;
+import com.vasylenkob.pastebin.dto.Post;
+import com.vasylenkob.pastebin.dto.SavedPost;
+import com.vasylenkob.pastebin.entities.MetaData;
+import com.vasylenkob.pastebin.exceptions.PostDoesNotExistException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.Optional;
 
 @Service
 @AllArgsConstructor
 public class PostService {
-    MetaDataService metaDataService;
-    HashService hashService;
-    AmazonS3ClientService s3;
+    private final MetaDataService metaDataService;
+    private final HashService hashService;
+    private final AmazonS3ClientService s3;
 
     public String savePost(Post post){
         String postKey = createPostKey(post.getPostTitle());
-        LocalDateTime curretTime = LocalDateTime.now();
-        LocalDateTime expirationDate = curretTime.plusMinutes(post.getLifetimeMinutes());
+        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime expirationDate = currentTime.plusMinutes(post.getLifetimeMinutes());
 
         MetaData meta = metaDataService.saveMetaData(
                 new MetaData(postKey, post.getPostTitle(), expirationDate));
@@ -29,19 +27,24 @@ public class PostService {
         return hashService.makeHash(meta);
     }
 
-    // TODO add exception??
-    public Optional<SavedPost> getPost(String hash){
+    public SavedPost getPost(String hash) {
+        long postId;
+        try {
+             postId = Long.parseLong(hashService.deHash(hash));
+        } catch (RuntimeException e) {
+            throw new PostDoesNotExistException("Post does not exist");
+        }
         MetaData metaData = metaDataService
-                .getMetaData(Long.valueOf(hashService.deHash(hash))).get();
-        return Optional.of(s3.getSavedPost(metaData));
+                .getMetaData(postId)
+                .orElseThrow(() -> new PostDoesNotExistException("Post does not exist"));
+        return s3.getSavedPost(metaData);
     }
 
     private String createPostKey(String title){
-        Date currentDate = new Date();
-        return currentDate + ":" + title;
+        LocalDateTime currentDate = LocalDateTime.now();
+        return currentDate + " : " + title;
     }
 
-    // TODO add exception??
     public void deletePost(MetaData metaData) {
         metaDataService.deleteMetaDataById(metaData.getMetaId());
         s3.deletePost(metaData);
