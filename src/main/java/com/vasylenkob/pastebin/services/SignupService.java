@@ -4,10 +4,8 @@ import com.vasylenkob.pastebin.dto.SignUpUser;
 import com.vasylenkob.pastebin.dto.VerifyUser;
 import com.vasylenkob.pastebin.entities.User;
 import com.vasylenkob.pastebin.exceptions.*;
-import com.vasylenkob.pastebin.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,18 +16,17 @@ import java.util.Random;
 @Service
 @RequiredArgsConstructor
 public class SignupService {
-    private final UserRepo userRepo;
+    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
-    private final AuthenticationProvider authenticationProvider;
     @Value("${verificationCode.lifetimeMinutes}")
     private Long codeLifeTimeMinutes;
 
-    public User signUp(SignUpUser signUpUser){
-        if (userRepo.existsByEmail(signUpUser.getEmail())) {
+    public void signUp(SignUpUser signUpUser){
+        if (userService.existsByEmail(signUpUser.getEmail())) {
             throw new UserAlreadyExistsException("Email is already in use");
         }
-        if (userRepo.existsByUsername(signUpUser.getUsername())) {
+        if (userService.existsByUsername(signUpUser.getUsername())) {
             throw new UserAlreadyExistsException("Username is already in use");
         }
         User user = User.builder()
@@ -40,11 +37,11 @@ public class SignupService {
                 .verificationCodeExpiration(LocalDateTime.now().plusMinutes(codeLifeTimeMinutes))
                 .build();
         sendVerificationEmail(user);
-        return userRepo.saveAndFlush(user);
+        userService.save(user);
     }
 
     public void verify(VerifyUser verifyUser) {
-        Optional<User> optionalUser = userRepo.findByEmail(verifyUser.getEmail());
+        Optional<User> optionalUser = userService.findByEmail(verifyUser.getEmail());
         if (optionalUser.isPresent()){
             User user = optionalUser.get();
             if (user.getVerificationCodeExpiration().isBefore(LocalDateTime.now())){
@@ -54,7 +51,7 @@ public class SignupService {
                 user.setEnabled(true);
                 user.setVerificationCode(null);
                 user.setVerificationCodeExpiration(null);
-                userRepo.saveAndFlush(user);
+                userService.save(user);
             }else{
                 throw new InvalidVerificationCodeException("Invalid verification code");
             }
@@ -65,7 +62,7 @@ public class SignupService {
     }
 
     public void resendEmail(String email){
-        Optional<User> optionalUser = userRepo.findByEmail(email);
+        Optional<User> optionalUser = userService.findByEmail(email);
         if (optionalUser.isPresent()){
             User user = optionalUser.get();
             if (user.isEnabled()){
@@ -74,7 +71,7 @@ public class SignupService {
             String verificationCode = generateVerificationCode();
             user.setVerificationCode(generateVerificationCode());
             user.setVerificationCodeExpiration(LocalDateTime.now().plusMinutes(codeLifeTimeMinutes));
-            userRepo.saveAndFlush(user);
+            userService.save(user);
             sendVerificationEmail(user);
         }else {
             throw new UserNotFoundException("User not found");

@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class Post {
+public class PostForm {
  private String postTitle;
  private String content;
  private int lifetimeMinutes;

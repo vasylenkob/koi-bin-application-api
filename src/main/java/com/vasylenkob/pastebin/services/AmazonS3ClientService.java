@@ -23,10 +23,10 @@ public class AmazonS3ClientService {
         this.s3 = s3;
     }
 
-    public void savePost(String postName, String content) {
+    public void savePost(String postKey, String content) {
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
-                .key(postName)
+                .key(postKey)
                 .build();
         try {
             s3.putObject(putObjectRequest, RequestBody.fromBytes(content.getBytes()));
@@ -36,21 +36,11 @@ public class AmazonS3ClientService {
     }
 
     public SavedPost getSavedPost(MetaData metaData){
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucketName)
-                .key(metaData.getPostKey())
+        return SavedPost.builder()
+                .postTitle(metaData.getTitle())
+                .content(getContentFromS3(metaData.getPostKey()))
+                .expirationDate(metaData.getExpirationDate())
                 .build();
-        try {
-            var response = s3.getObject(getObjectRequest);
-            return new SavedPost(
-                    metaData.getTitle(),
-                    new String (response.readAllBytes()),
-                    metaData.getExpirationDate());
-        } catch (S3Exception e) {
-            throw new RuntimeException("Failed to get post from S3: " + e.getMessage(), e);
-        }catch (IOException e) {
-            throw new RuntimeException("Error reading from response: " + e.getMessage(), e);
-        }
     }
 
     public void deletePost(MetaData metaData) {
@@ -62,6 +52,21 @@ public class AmazonS3ClientService {
             s3.deleteObject(deleteObjectRequest);
         }catch (S3Exception e){
             throw new RuntimeException("Failed to delete post from S3: " + e.getMessage(), e);
+        }
+    }
+
+    private String getContentFromS3(String postKey) {
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(postKey)
+                .build();
+        try {
+            var response = s3.getObject(getObjectRequest);
+            return new String(response.readAllBytes());
+        } catch (S3Exception e) {
+            throw new RuntimeException("Failed to get post content from S3: " + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading from response: " + e.getMessage(), e);
         }
     }
 }

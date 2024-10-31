@@ -36,6 +36,9 @@ public class User implements UserDetails {
     private LocalDateTime verificationCodeExpiration;
     private boolean enabled;
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL)
+    private List<MetaData> posts;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
