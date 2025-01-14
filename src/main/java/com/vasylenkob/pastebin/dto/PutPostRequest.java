@@ -5,8 +5,8 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class PostForm {
+public class PutPostRequest {
  private String postTitle;
  private String content;
- private int lifetimeMinutes;
+ private Integer lifetimeMinutes;
 }

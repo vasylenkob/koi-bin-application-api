@@ -29,6 +29,9 @@ public class MetaData {
     private User user;
 
     public boolean isExpired(){
-        return LocalDateTime.now().isAfter(expirationDate);
+        if (expirationDate != null){
+            return LocalDateTime.now().isAfter(expirationDate);
+        }
+        return false;
     }
 }

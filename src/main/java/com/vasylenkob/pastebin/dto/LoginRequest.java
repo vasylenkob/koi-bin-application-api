@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ShortPostDetails {
-    private String link;
-    private String title;
+public class LoginRequest {
+    private String username;
+    private String password;
 }

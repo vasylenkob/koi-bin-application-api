@@ -3,8 +3,7 @@ package com.vasylenkob.pastebin.dto;
 import lombok.Data;
 
 @Data
-public class SignUpUser {
-    private String username;
+public class VerifyRequest {
     private String email;
-    private String password;
+    private String verificationCode;
 }

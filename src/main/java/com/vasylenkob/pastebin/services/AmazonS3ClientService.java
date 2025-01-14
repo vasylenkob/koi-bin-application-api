@@ -1,6 +1,6 @@
 package com.vasylenkob.pastebin.services;
 
-import com.vasylenkob.pastebin.dto.SavedPost;
+import com.vasylenkob.pastebin.dto.PostDTO;
 import com.vasylenkob.pastebin.entities.MetaData;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,7 +23,7 @@ public class AmazonS3ClientService {
         this.s3 = s3;
     }
 
-    public void savePost(String postKey, String content) {
+    public void putPost(String postKey, String content) {
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(postKey)
@@ -35,8 +35,9 @@ public class AmazonS3ClientService {
         }
     }
 
-    public SavedPost getSavedPost(MetaData metaData){
-        return SavedPost.builder()
+    //TODO move builder to postservice
+    public PostDTO getPost(MetaData metaData){
+        return PostDTO.builder()
                 .postTitle(metaData.getTitle())
                 .content(getContentFromS3(metaData.getPostKey()))
                 .expirationDate(metaData.getExpirationDate())
